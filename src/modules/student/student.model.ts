@@ -1,4 +1,5 @@
-import { Model, Schema, model } from 'mongoose';
+/* eslint-disable @typescript-eslint/no-this-alias */
+import { Schema, model } from 'mongoose';
 import {
   TGuardian,
   TLocalGuardian,
@@ -6,7 +7,8 @@ import {
   StudentModel,
   TUsername,
 } from './student.interface';
-
+import bcrypt from 'bcrypt';
+import config from '../../app/config';
 const userNameSchema = new Schema<TUsername>({
   firstName: {
     type: String,
@@ -94,6 +96,12 @@ const localGuardinSchema = new Schema<TLocalGuardian>({
 
 const studentSchema = new Schema<TStudent, StudentModel>({
   id: { type: String, required: true, unique: true, trim: true },
+  password: {
+    type: String,
+    required: true,
+
+    maxlength: [20, ' password more than 20 characters'],
+  },
   name: {
     type: userNameSchema,
     required: true,
@@ -114,10 +122,10 @@ const studentSchema = new Schema<TStudent, StudentModel>({
     required: true,
     unique: true,
     trim: true,
-    validate: {
-      validator: (value: string) => validator.isEmail(value),
-      message: '{VALUE} is not a valid Email',
-    },
+    // validate: {
+    //   validator: (value: string) => validator.isEmail(value),
+    //   message: '{VALUE} is not a valid Email',
+    // },
   },
   contactNo: { type: String, required: true, trim: true },
   emergencyContactNo: { type: String, required: true, trim: true },
@@ -144,13 +152,63 @@ const studentSchema = new Schema<TStudent, StudentModel>({
     enum: ['active', 'block'],
     default: 'active',
   },
-});
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
+},
+{
+  toJSON: {
+    virtuals: true
+  }
+}
+);
+
+
+// virtual
+studentSchema.virtual('fullName').get(function () {
+  return(
+    `${this.name.firstName} ${this.name.middleName}, ${this.name.lastName}`
+  )
+})
+
 
 // create inastance method
 studentSchema.statics.isUserExists = async function (id: string) {
   const existingUser = await Student.findOne({ id });
   return existingUser;
 };
+
+studentSchema.pre('save', async function (next) {
+  const user = this;
+  user.password = await bcrypt.hash(
+    user.password,
+    Number(config.bcrypt_salt_rounds),
+  );
+  next();
+});
+studentSchema.post('save', function (doc, next) {
+  doc.password = '';
+  next();
+});
+
+//Query middleware
+
+studentSchema.pre('find', function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
+});
+
+
+studentSchema.pre('findOne', function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
+});
+
+studentSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({$match:{ isDeleted: { $ne: true } }});
+  next();
+});
 
 // studentSchema.methods.isUserExists = async function (id: string) {
 //   const existingUser = await Student.findOne({ id });

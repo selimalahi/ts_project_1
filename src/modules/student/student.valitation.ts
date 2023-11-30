@@ -25,6 +25,7 @@ const userNameValidationSchema = z.object({
   
   const studentValidationSchema = z.object({
     id: z.string(),
+    password: z.string().max(20),
     name:  userNameValidationSchema,
     gender: z.enum(['male', 'female', 'other']).refine(value => typeof value === 'string', { message: 'Gender is required' }),
     dateOfBirth: z.string().min(1, { message: 'Date of birth is required' }),
@@ -38,6 +39,7 @@ const userNameValidationSchema = z.object({
     localGuardian: localGuardianValidationSchema,
     profileImg: z.string().optional(),
     isActive: z.enum(['active', 'block']).default('active'),
+    isDeleted: z.boolean(),
   });
 
 
