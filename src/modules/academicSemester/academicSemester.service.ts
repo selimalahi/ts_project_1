@@ -1,14 +1,51 @@
-import { TAcademicSemester } from "./academicSemester.interface";
-import { AcademicSemesTer } from "./acedemicSemester.model";
+import { TAcademicSemester } from './academicSemester.interface';
+import { academicSemesterNameCodeMapper } from './acedemicSemester.constant';
+import { AcademicSemesTer } from './acedemicSemester.model';
+
+const createAcademicSemesterIntoDB = async (payLoad: TAcademicSemester) => {
+  
+  if (academicSemesterNameCodeMapper[payLoad.name] !== payLoad.code) {
+    throw new Error('Invalid Semester code');
+  }
+   
+  const result = await AcademicSemesTer.create(payLoad);
+  return result;
+};
 
 
-const createAcademicSemesterIntoDB = async(payLoad: TAcademicSemester,) =>{
+const getAllAcademicSemestersFromDB = async () => {
+  const result = await AcademicSemesTer.find();
+  return result;
+};
 
-    const result = await AcademicSemesTer.create(payLoad);
-    return result;
 
-}
+
+const getSingleAcademicSemesterFromDB = async (id: string) => {
+  const result = await AcademicSemesTer.findById(id);
+  return result;
+};
+
+const updateAcademicSemesterIntoDB = async (
+  id: string,
+  payload: Partial<TAcademicSemester>,
+) => {
+  if (
+    payload.name &&
+    payload.code &&
+    academicSemesterNameCodeMapper[payload.name] !== payload.code
+  ) {
+    throw new Error('Invalid Semester Code');
+  }
+
+  const result = await AcademicSemesTer.findOneAndUpdate({ _id: id }, payload, {
+    new: true,
+  });
+  return result;
+};
 
 export const AcademicSemesterServices = {
-    createAcademicSemesterIntoDB,
-}
+  createAcademicSemesterIntoDB,
+  getSingleAcademicSemesterFromDB,
+  updateAcademicSemesterIntoDB,
+  getAllAcademicSemestersFromDB,
+};

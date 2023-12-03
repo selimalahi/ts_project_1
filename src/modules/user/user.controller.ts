@@ -8,12 +8,7 @@ const createStudent = catchAsync(async (req, res) => {
 
   
   const result = await UserServices.cretateStudentIntoDB(password, studentData);
-
-  // res.status(200).json({
-  //   success: true,
-  //   message: 'Student is crested successfully',
-  //   data: result,
-  // });
+  
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
