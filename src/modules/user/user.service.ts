@@ -13,17 +13,13 @@ const cretateStudentIntoDB = async (password: string, payLoad: TStudent) => {
   const userData: Partial<TUser> = {};
   // if password is not given, use default password
   userData.password = password || (config.default_password as string);
-
   // set student role
   userData.role = 'student';
-
   // find academic semester info
   const admissionSemester = await AcademicSemesTer.findById(
     payLoad.admissionSemester,
   );
-
   const session = await mongoose.startSession();
-
   try {
     session.startTransaction();
     // set manually generated id
@@ -50,10 +46,10 @@ const cretateStudentIntoDB = async (password: string, payLoad: TStudent) => {
     await session.commitTransaction();
     await session.endSession();
     return newStudent;
-  } catch (err) {
+  } catch (err: any) {
     await session.abortTransaction();
     await session.endSession();
-    throw new Error('Failed to Create Student');
+    throw new Error(err);
   }
 };
 
