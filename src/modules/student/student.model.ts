@@ -160,11 +160,12 @@ const studentSchema = new Schema<TStudent, StudentModel>(
       virtuals: true,
     },
   },
+  
 );
 
 // virtual
 studentSchema.virtual('fullName').get(function () {
-  return `${this.name.firstName} ${this.name.middleName}, ${this.name.lastName}`;
+  return `${this?.name?.firstName} ${this?.name?.middleName}, ${this?.name?.lastName}`;
 });
 
 // create inastance method
